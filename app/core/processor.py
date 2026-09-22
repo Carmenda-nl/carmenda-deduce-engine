@@ -7,12 +7,13 @@
 
 This pipeline provides functionality for:
     - Loading data from files
-    - Creating datakeys for clientnames
+    - Loading datakeys for clientnames
     - Transforming and pseudonymizing report data
     - Writing processed data to output files
 """
 
 import logging
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -20,9 +21,8 @@ from typing import Any
 
 import polars as pl
 
-from core.datakey import process_datakey
 from core.deduce import DeduceHandler
-from core.utils.file_handling import load_datafile, save_datafile, save_datakey
+from core.utils.file_handling import load_datafile, load_datakey, save_datafile
 from core.utils.logger import setup_logging
 from core.utils.progress_tracker import ProgressTracker, performance_metrics
 
@@ -38,12 +38,11 @@ def process_data(file: str, datakey: str, input_cols: str, tracker: ProgressTrac
     start_time = time.time()
     tracker.set_progress('start')
 
-    job_logger = logging.LoggerAdapter(logger, {'job_id': id(tracker)})
-    job_logger.debug(
+    logging.LoggerAdapter(logger, {'job_id': id(tracker)}).debug(
         'Parsed arguments:\n |-- input_file=%s\n |-- input_cols=%s\n |-- datakey=%s\n', file, input_cols, datakey
     )
 
-    json_output: dict[str, Any] = {'datakey_path': None, 'log_path': None}
+    json_output: dict[str, Any] = {}
 
     # ----------------------------- STEP 1: LOADING DATA ------------------------------ #
 
@@ -83,26 +82,27 @@ def process_data(file: str, datakey: str, input_cols: str, tracker: ProgressTrac
         logger.error(message)
         return {'error': message}
 
-    # ------------------------------ STEP 2: CREATE KEY ------------------------------- #
+    # ------------------------------- STEP 2: LOAD KEY --------------------------------- #
 
     if has_clientname and clientname_col is not None:
         # Strip whitespace from clientnames
         df = df.with_columns(pl.col(clientname_col).str.strip_chars())
 
-        processed_datakey = process_datakey(df, input_cols_dict, datakey)
-        datakey_filename = f'{Path(file).stem}_key.csv'
-        json_output['datakey'] = save_datakey(processed_datakey, file, output_dir, datakey_filename)
-    else:
-        logger.info('Clientname not provided, skipping datakey creation.')
+        if datakey:
+            datakey_df = load_datakey(datakey)
+            json_output['datakey'] = str(shutil.copy2(Path(datakey), Path(output_dir) / f'{Path(file).stem}_key.csv'))
+        else:
+            datakey_df = None
+            logger.warning('Clientname provided but no datakey, skipping datakey handling.')
 
     # -------------------------- STEP 3: DATA TRANSFORMATION -------------------------- #
 
     handler = DeduceHandler(tracker=tracker)
 
-    if has_clientname:
-        df = handler.replace_synonym(df, processed_datakey, report_cols)
+    if has_clientname and datakey_df:
+        df = handler.replace_synonym(df, datakey_df, report_cols)
         df = handler.deidentify_text(df, input_cols_dict)
-        df = handler.add_clientcodes(df, processed_datakey, input_cols_dict)
+        df = handler.add_clientcodes(df, datakey_df, input_cols_dict)
     else:
         df = handler.deidentify_text(df, input_cols_dict)
 
