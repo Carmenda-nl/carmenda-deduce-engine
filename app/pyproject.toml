@@ -82,3 +82,7 @@ addopts = [
     '-p',
     'no:warnings'
 ]
+
+[[tool.mypy.overrides]]
+module = 'deduce.*'
+ignore_missing_imports = true
