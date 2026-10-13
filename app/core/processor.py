@@ -44,6 +44,9 @@ def process_data(file: str, datakey: str, input_cols: str, tracker: ProgressTrac
 
     json_output: dict[str, Any] = {}
 
+    tracker.set_progress('init_model')
+    handler = DeduceHandler(tracker=tracker)
+
     # ----------------------------- STEP 1: LOADING DATA ------------------------------ #
 
     df = load_datafile(file, tracker=tracker)
@@ -92,8 +95,6 @@ def process_data(file: str, datakey: str, input_cols: str, tracker: ProgressTrac
         json_output['datakey'] = str(shutil.copy2(Path(datakey), Path(output_dir) / f'{Path(file).stem}_key.csv'))
 
     # -------------------------- STEP 3: DATA TRANSFORMATION -------------------------- #
-
-    handler = DeduceHandler(tracker=tracker)
 
     if has_clientname:
         df = handler.replace_synonym(df, datakey_df, report_cols)

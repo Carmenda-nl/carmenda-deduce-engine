@@ -147,10 +147,10 @@ class ProgressTracker:
         self.check_cancelled()
         progress_stages: dict[str, tuple] = {
             'start': ('start', 0),
-            'file_loaded': ('file loaded', 8),
-            'init_model': ('initializing model', 10),
-            'init_tables': ('initializing tables', 15),
-            'init_names': ('initializing name detection', 18),
+            'init_model': ('initializing model', 5),
+            'init_tables': ('initializing tables', 7),
+            'init_names': ('initializing name detection', 9),
+            'file_loaded': ('file loaded', 10),
             'done': ('done', 100),
         }
 
