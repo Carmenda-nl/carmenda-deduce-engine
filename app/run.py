@@ -17,6 +17,7 @@ import uvicorn
 from fastapi import FastAPI
 
 from api import router
+from api.endpoints.process import queue_preload
 from api.utils.worker import shutdown_worker
 from core.utils.logger import setup_logging
 from main.config import settings
@@ -29,7 +30,7 @@ logger = setup_logging()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
-    """Build data folders at startup; on shutdown, properly cancel any running process."""
+    """Build data folders and preload the models at startup; on shutdown, properly cancel any running process."""
     logger.handlers = logging.getLogger('uvicorn').handlers
     logger.propagate = False
 
@@ -42,6 +43,8 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
 
     temp_root = Path(tempfile.gettempdir()) / 'Carmenda'
     shutil.rmtree(temp_root, ignore_errors=True)
+
+    queue_preload()
 
     yield
     shutdown_worker()

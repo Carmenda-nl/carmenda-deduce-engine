@@ -35,7 +35,7 @@ MINIMUM_ROWS = 6
 
 def process_data(file: str, datakey: str, input_cols: str, tracker: ProgressTracker, output_dir: str) -> dict[str, Any]:
     """Process and pseudonymize data from input file and return the first 10 rows in Json."""
-    start_time = time.time()
+    start_time = time.perf_counter()
     tracker.set_progress('start')
 
     logging.LoggerAdapter(logger, {'job_id': id(tracker)}).debug(

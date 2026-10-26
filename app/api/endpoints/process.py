@@ -20,12 +20,17 @@ from starlette.status import HTTP_202_ACCEPTED
 
 from api.schemas import DatakeyPath, FilePath, InputCols, JobId, StatusResponse, error_responses
 from api.utils.file_handling import cleanup_output
-from api.utils.worker import run_job, worker
+from api.utils.worker import preload_models, run_job, worker
 from core.utils.progress_tracker import ProgressTracker
 from main.config import settings
 
 router = APIRouter(tags=['Process engine'])
 executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='process')
+
+
+def queue_preload() -> None:
+    """Load the models on the worker ahead of the first job; a job submitted meanwhile queues behind it."""
+    executor.submit(preload_models)
 
 
 @router.post(
@@ -86,6 +91,7 @@ def process_file(file: FilePath, cols: InputCols, job_id: JobId = '', datakey: D
 
     worker.job_id = job_id
     worker.tracker = ProgressTracker()
+    worker.tracker.set_progress('init_model')
     worker.result = None
 
     executor.submit(run_job, str(input_path), cols, datakey_input_path, worker.tracker, str(output_path))

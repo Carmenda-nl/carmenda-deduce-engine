@@ -14,7 +14,6 @@ from __future__ import annotations
 import io
 import sys
 import time
-from datetime import timedelta
 
 from rich.console import Console
 from rich.progress import (
@@ -148,8 +147,6 @@ class ProgressTracker:
         progress_stages: dict[str, tuple] = {
             'start': ('start', 0),
             'init_model': ('initializing model', 5),
-            'init_tables': ('initializing tables', 7),
-            'init_names': ('initializing name detection', 9),
             'file_loaded': ('file loaded', 10),
             'done': ('done', 100),
         }
@@ -183,13 +180,12 @@ class ProgressTracker:
         }
 
 
-def performance_metrics(start_time: float, df_rowcount: int) -> dict[str, int | float]:
+def performance_metrics(start_time: float, df_rowcount: int) -> dict:
     """Log performance metrics in time needed for processing."""
-    end_time = time.time()
-    total_time = end_time - start_time
+    total_time = time.perf_counter() - start_time
     time_per_row = (total_time / df_rowcount * 1000) if df_rowcount > 0 else 0
-    total_seconds = int(timedelta(seconds=total_time).total_seconds())
 
+    total_seconds = round(total_time)
     hours = total_seconds // 3600
     minutes = (total_seconds % 3600) // 60
     seconds = total_seconds % 60
@@ -199,8 +195,5 @@ def performance_metrics(start_time: float, df_rowcount: int) -> dict[str, int | 
 
     return {
         'total_rows': df_rowcount,
-        'hours': hours,
-        'minutes': minutes,
-        'seconds': seconds,
         'time_per_row': round(time_per_row, 3),
     }
