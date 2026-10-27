@@ -235,10 +235,16 @@ class DeduceHandler:
             .select('clientcode', pl.all().exclude('clientcode'))
         )
 
+        missing_names = df.filter(pl.col('clientcode').is_null()).get_column(clientname_col).drop_nulls().n_unique()
+        if missing_names:
+            logger.warning('%d clientname(s) not found in datakey', missing_names)
+
         processed_cols = [col for col in df.columns if col.startswith('processed_report_')]
         return df.with_columns(
             [
-                pl.col(col).str.replace_all(r'\[PATIENT\]', pl.format('[{}]', pl.col('clientcode')))
+                pl.col(col).str.replace_all(
+                    r'\[PATIENT\]', pl.format('[{}]', pl.col('clientcode')).fill_null('[PATIENT]')
+                )
                 for col in processed_cols
             ],
         )
