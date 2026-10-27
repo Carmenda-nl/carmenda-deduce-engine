@@ -91,7 +91,7 @@ def process_file(file: FilePath, cols: InputCols, job_id: JobId = '', datakey: D
 
     worker.job_id = job_id
     worker.tracker = ProgressTracker()
-    worker.tracker.set_progress('init_model')
+    worker.tracker.set_progress('start')
     worker.result = None
 
     executor.submit(run_job, str(input_path), cols, datakey_input_path, worker.tracker, str(output_path))

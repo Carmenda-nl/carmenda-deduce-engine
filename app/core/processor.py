@@ -36,7 +36,6 @@ MINIMUM_ROWS = 6
 def process_data(file: str, datakey: str, input_cols: str, tracker: ProgressTracker, output_dir: str) -> dict[str, Any]:
     """Process and pseudonymize data from input file and return the first 10 rows in Json."""
     start_time = time.perf_counter()
-    tracker.set_progress('start')
 
     logging.LoggerAdapter(logger, {'job_id': id(tracker)}).debug(
         'Parsed arguments:\n |-- input_file=%s\n |-- input_cols=%s\n |-- datakey=%s\n', file, input_cols, datakey
@@ -44,7 +43,6 @@ def process_data(file: str, datakey: str, input_cols: str, tracker: ProgressTrac
 
     json_output: dict[str, Any] = {}
 
-    tracker.set_progress('init_model')
     handler = DeduceHandler(tracker=tracker)
 
     # ----------------------------- STEP 1: LOADING DATA ------------------------------ #
@@ -57,6 +55,11 @@ def process_data(file: str, datakey: str, input_cols: str, tracker: ProgressTrac
         for column in input_cols.split(','):
             partitioned = column.partition('=')
             input_cols_dict[partitioned[0].strip()] = partitioned[2]
+
+        if 'clientname' in input_cols_dict and not datakey:
+            logger.warning('No datakey provided, ignoring clientname column.')
+            del input_cols_dict['clientname']
+
         report_cols = [value for key, value in input_cols_dict.items() if key.startswith('report')]
 
         report_order = {
