@@ -7,7 +7,7 @@
 
 The engine verifies a shared secret on incoming requests to confirm the connection comes
 from the trusted gateway. The check is only enforced when `settings.m2m_hash` is configured
-(gateway mode); without a hash the engine runs standalone and the check is skipped.
+(gateway mode); without a hash the engine runs standalone and refuses any request from a gateway.
 """
 
 from __future__ import annotations
@@ -22,8 +22,10 @@ M2M_HEADER = 'X-M2M-Key'
 
 
 def verify_m2m(x_m2m_key: str = Header(default='', alias=M2M_HEADER)) -> None:
-    """Reject requests that do not carry the configured M2M secret (gateway mode only)."""
+    """Gateway mode: require the M2M secret. Standalone mode: refuse requests coming from a gateway."""
     if not settings.m2m_hash:
+        if x_m2m_key:
+            raise HTTPException(status_code=409, detail='Engine runs in standalone mode, gateway requests are refused')
         return
     if not secrets.compare_digest(x_m2m_key, settings.m2m_hash):
         raise HTTPException(status_code=401, detail='Invalid or missing M2M key')
