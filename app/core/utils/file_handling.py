@@ -63,27 +63,8 @@ def save_datafile(df: pl.DataFrame, filename: str, output_folder: str) -> str | 
         return None
 
 
-def load_datakey(datakey_path: str) -> pl.DataFrame | None:
+def load_datakey(datakey_path: str) -> pl.DataFrame:
     """Grab valid names from file and return as a Polars DataFrame."""
     df = pl.read_csv(datakey_path, encoding='utf-8', separator=',', eol_char='\n')
     df = df.rename({'Clientnaam': 'clientname', 'Synoniemen': 'synonyms', 'Code': 'code'})
     return df.with_columns(pl.col('clientname').str.strip_chars()).filter(pl.col('clientname') != '')
-
-
-def save_datakey(datakey: pl.DataFrame, filename: str, output_folder: str, key_name: str | None = None) -> str | None:
-    """Save the processed datakey to a CSV file for future use."""
-    filepath = Path(filename)
-    output_filename = key_name or f'{filepath.stem}_key.csv'
-
-    target_dir = Path(output_folder)
-    file_path = target_dir / output_filename
-
-    try:
-        target_dir.mkdir(parents=True, exist_ok=True)
-        datakey = datakey.rename({'clientname': 'Clientnaam', 'synonyms': 'Synoniemen', 'code': 'Code'})
-        datakey.write_csv(file_path, separator=',')
-        logger.debug('Saving datakey: %s\n%s\n', output_filename, datakey)
-        return str(file_path)
-    except OSError:
-        logger.warning('Cannot write datakey to "%s".', file_path)
-        return None

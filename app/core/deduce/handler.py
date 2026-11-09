@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 import re
-from functools import reduce
+from functools import cache, reduce
 from typing import TYPE_CHECKING
 
 import polars as pl
@@ -21,27 +21,32 @@ from core.utils.logger import setup_logging
 from core.utils.terminal import colorize_tags, log_block
 
 if TYPE_CHECKING:
+    import deduce
+
     from core.utils.progress_tracker import ProgressTracker
 
 logger = setup_logging()
+
+
+@cache
+def load_models() -> tuple[deduce.Deduce, dict[str, set[str]], DutchNameDetector]:
+    """Load Deduce, the lookup tables and the name detector once per engine process."""
+    deduce_manager = DeduceInstanceManager()
+    deduce_instance = deduce_manager.create_instance()
+    lookup_sets = deduce_manager.load_lookup_tables()
+
+    return deduce_instance, lookup_sets, DutchNameDetector(lookup_sets)
 
 
 class DeduceHandler:
     """Handler class for de-identification operations."""
 
     def __init__(self, tracker: ProgressTracker) -> None:
-        """Initialize a configured Deduce instance."""
+        """Initialize the handler with the (preloaded) Deduce instance."""
         self.tracker = tracker
-        self.deduce_manager = DeduceInstanceManager()
 
         self.tracker.set_progress('init_model')
-        self.deduce_instance = self.deduce_manager.create_instance()
-
-        self.tracker.set_progress('init_tables')
-        self.lookup_sets = self.deduce_manager.load_lookup_tables()
-
-        self.tracker.set_progress('init_names')
-        self.name_detection = DutchNameDetector(self.lookup_sets)
+        self.deduce_instance, self.lookup_sets, self.name_detection = load_models()
 
         # For debug logging of de-identification results
         self.processed_reports: list[dict[str, str]] = []
@@ -230,10 +235,16 @@ class DeduceHandler:
             .select('clientcode', pl.all().exclude('clientcode'))
         )
 
+        missing_names = df.filter(pl.col('clientcode').is_null()).get_column(clientname_col).drop_nulls().n_unique()
+        if missing_names:
+            logger.warning('%d clientname(s) not found in datakey', missing_names)
+
         processed_cols = [col for col in df.columns if col.startswith('processed_report_')]
         return df.with_columns(
             [
-                pl.col(col).str.replace_all(r'\[PATIENT\]', pl.format('[{}]', pl.col('clientcode')))
+                pl.col(col).str.replace_all(
+                    r'\[PATIENT\]', pl.format('[{}]', pl.col('clientcode')).fill_null('[PATIENT]')
+                )
                 for col in processed_cols
             ],
         )

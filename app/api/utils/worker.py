@@ -6,6 +6,7 @@
 """Single-job worker state and execution helpers.
 
 Holds the global Worker instance (tracker + result) and two helpers:
+    - preload_models: loads the models on the worker thread
     - run_job: executes process_data on a background thread and writes the result back to worker state
     - shutdown_worker: cancels the running job (if any) and waits for its cleanup to finish
 """
@@ -17,6 +18,7 @@ import dataclasses
 import time
 from typing import TYPE_CHECKING, Any
 
+from core.deduce.handler import load_models
 from core.processor import process_data
 from core.utils.logger import attach_job_log, detach_job_log, setup_logging
 
@@ -40,6 +42,15 @@ class Worker:
 
 worker = Worker()
 logger = setup_logging()
+
+
+def preload_models() -> None:
+    """Loads the models on the worker thread."""
+    try:
+        load_models()
+        logger.info('Models preloaded...')
+    except Exception:
+        logger.exception('Preloading models failed!')
 
 
 def run_job(file: str, input_cols: str, datakey: str, tracker: ProgressTracker, output_dir: str) -> None:

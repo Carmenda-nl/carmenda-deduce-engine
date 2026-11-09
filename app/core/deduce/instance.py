@@ -21,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import cast
 
-import deduce  # type: ignore[import-untyped]
+import deduce
 
 from core.utils.logger import setup_logging
 

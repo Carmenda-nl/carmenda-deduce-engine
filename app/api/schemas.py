@@ -66,12 +66,9 @@ def error_responses(*responses: tuple[int, str]) -> dict[int | str, dict[str, An
 
 
 class MetricsSchema(BaseModel):
-    """Timing and row-count metrics for a completed pseudonymization run."""
+    """Row-count metrics for a completed pseudonymization run."""
 
     total_rows: int
-    hours: int
-    minutes: int
-    seconds: int
     time_per_row: float
 
 

@@ -1,8 +1,8 @@
 # Carmenda Deduce engine
 
 [![Python](https://img.shields.io/badge/python-3.14-blue)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.139-009688)](https://fastapi.tiangolo.com/)
-[![Polars](https://img.shields.io/badge/polars-1.42-9cf)](https://pola.rs/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688)](https://fastapi.tiangolo.com/)
+[![Polars](https://img.shields.io/badge/polars-1.44-9cf)](https://pola.rs/)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Tests](https://github.com/Carmenda-nl/carmenda-deduce-engine/actions/workflows/test-develop.yml/badge.svg?branch=develop)](https://github.com/Carmenda-nl/carmenda-deduce-engine/actions/workflows/test-develop.yml)
@@ -144,7 +144,7 @@ Ensure [uv](https://docs.astral.sh/uv/getting-started/installation/) and Git are
 Clone this repository to your local machine:
 
 ```bash
-git clone --recursive https://github.com/Carmenda-nl/carmenda-deduce-engine.git
+git clone https://github.com/Carmenda-nl/carmenda-deduce-engine.git
 ```
 
 Open a terminal and navigate to the `app` folder of this project:
