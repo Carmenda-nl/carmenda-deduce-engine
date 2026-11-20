@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 from core.deduce.handler import load_models
 from core.processor import process_data
 from core.utils.logger import attach_job_log, detach_job_log, setup_logging
+from main.config import settings
 
 if TYPE_CHECKING:
     from core.utils.progress_tracker import ProgressTracker
@@ -56,6 +57,7 @@ def preload_models() -> None:
 def run_job(file: str, input_cols: str, datakey: str, tracker: ProgressTracker, output_dir: str) -> None:
     """Runs process_data on the worker thread and stores the result on the worker state."""
     log_handler = attach_job_log(output_dir)
+    logger.info('Engine: %s v%s', settings.app_title, settings.app_version)
     status = 'done'
 
     try:
