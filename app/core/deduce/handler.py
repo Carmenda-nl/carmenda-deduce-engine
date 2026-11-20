@@ -110,7 +110,7 @@ class DeduceHandler:
             metadata['patient'] = client
 
         result = self.deduce_instance.deidentify(preprocessed_text, metadata=metadata)
-        return result.deidentified_text
+        return result.deidentified_text or ''
 
     def _merge_detections(self, report_text: str, deduce_result: str, extend_result: list[NameAnnotation]) -> str:
         """Merge Deduce and custom detections."""

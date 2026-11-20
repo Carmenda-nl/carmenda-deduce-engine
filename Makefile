@@ -17,7 +17,7 @@ help:
 	@echo   make lint             Run ruff lint checks
 	@echo   make format           Format code with ruff
 	@echo   make test             Run the test suite
-	@echo   make typecheck        Run mypy type checks
+	@echo   make typecheck        Run ty type checks
 	@echo   make check            Run all checks
 	@echo   make build            Build the executable with PyInstaller
 
@@ -31,7 +31,7 @@ lint:
 	cd $(APP_DIR) && uv run ruff check .
 
 typecheck:
-	cd $(APP_DIR) && uv run mypy .
+	cd $(APP_DIR) && uv run ty check
 
 test:
 	cd $(APP_DIR) && uv run pytest

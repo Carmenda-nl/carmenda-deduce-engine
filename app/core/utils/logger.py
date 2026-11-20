@@ -19,7 +19,7 @@ load_dotenv()
 
 def setup_logging() -> logging.Logger:
     """Set up the deidentify logger. The log file itself is only open while a process runs."""
-    level: int = logging.getLevelName(os.environ.get('LOG_LEVEL', 'INFO').upper())
+    level: int = logging.getLevelNamesMapping().get(os.environ.get('LOG_LEVEL', 'INFO').upper(), logging.INFO)
 
     # Silence asyncio debug log
     logging.getLogger('asyncio').setLevel(logging.WARNING)

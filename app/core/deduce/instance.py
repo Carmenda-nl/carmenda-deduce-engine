@@ -123,7 +123,7 @@ class DeduceInstanceManager:
             logger.warning('Temp directory approach failed, using original paths')
 
             return deduce.Deduce(
-                lookup_data_path=self.lookup_data_path,
+                lookup_data_path=cache_path,
                 cache_path=cache_path,
                 build_lookup_structs=False,
             )

@@ -16,7 +16,7 @@ app/data
 log
 *.log
 
-# -------------------------- Django folders & files -------------------------- #
+# -------------------------- Cache folders & files --------------------------- #
 
 cache
 __pycache__
