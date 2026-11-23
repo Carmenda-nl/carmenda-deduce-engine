@@ -14,11 +14,15 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from main.config import settings
+
 load_dotenv()
+
+LOGGER_NAME = settings.app_title
 
 
 def setup_logging() -> logging.Logger:
-    """Set up the deidentify logger. The log file itself is only open while a process runs."""
+    """Set up the engine logger. The log file itself is only open while a process runs."""
     level: int = logging.getLevelNamesMapping().get(os.environ.get('LOG_LEVEL', 'INFO').upper(), logging.INFO)
 
     # Silence asyncio debug log
@@ -29,7 +33,7 @@ def setup_logging() -> logging.Logger:
         logging.getLogger('uvicorn.access').addFilter(lambda record: 'GET /api/progress' not in record.getMessage())
         logging.getLogger('uvicorn.access').addFilter(lambda record: 'GET /api/process' not in record.getMessage())
 
-    logger = logging.getLogger('deidentify')
+    logger = logging.getLogger(LOGGER_NAME)
     logger.setLevel(level)
     logger.propagate = True
 
@@ -43,7 +47,7 @@ def setup_logging() -> logging.Logger:
 
 
 def attach_job_log(output_dir: str) -> logging.FileHandler | None:
-    """Open the process log file and attach it to the deidentify logger for the duration of a process."""
+    """Open the process log file and attach it to the engine logger for the duration of a process."""
     log_path = Path(output_dir)
     log_file_path = log_path / 'deidentification.log'
 
@@ -56,7 +60,7 @@ def attach_job_log(output_dir: str) -> logging.FileHandler | None:
 
     file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     file_handler.setLevel(logging.INFO)
-    logging.getLogger('deidentify').addHandler(file_handler)
+    logging.getLogger(LOGGER_NAME).addHandler(file_handler)
     return file_handler
 
 
@@ -65,7 +69,7 @@ def detach_job_log(file_handler: logging.FileHandler | None) -> None:
     if file_handler is None:
         return
 
-    logging.getLogger('deidentify').removeHandler(file_handler)
+    logging.getLogger(LOGGER_NAME).removeHandler(file_handler)
     file_handler.close()
 
 
